@@ -11,8 +11,7 @@ namespace Db4o_lab2
                 "~/Scripts/jquery.validate.js",
                 "~/Scripts/jquery.validate.unobtrusive.js",
                 "~/Scripts/bootstrap.js",
-                "~/Scripts/bootstrap-datepicker.js",
-                "~/Scripts/site.js"));
+                "~/Scripts/bootstrap-datepicker.js"));
             BundleTable.EnableOptimizations = true;
         }
     }

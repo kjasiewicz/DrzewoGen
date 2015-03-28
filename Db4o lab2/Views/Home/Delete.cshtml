@@ -1,0 +1,37 @@
+﻿@model Db4o_lab2.ViewModels.DeleteViewModel
+
+@{
+    ViewBag.Title = "Delete";
+}
+
+<h3>Czy na pewno chcesz usunąć tę osobę?</h3>
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Sex)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Sex)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm()) {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Delete" class="btn btn-danger" /> |
+            @Html.ActionLink("Wróć do listy", "Index",null,new{@class="btn btn-primary"})
+        </div>
+    }
+</div>

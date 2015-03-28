@@ -31,6 +31,80 @@ namespace Db4o_lab2.Controllers
 
         }
 
+
+
+        public ActionResult Details(string id)
+        {
+            using (var db = Db4oEmbedded.OpenFile(DbPath))
+            {
+                return View(db.Query<Person>(x=>x.Name==id).Select(x=> new DetailsViewModel
+                {
+                    FatherName = x.Father != null ? x.Father.Name : "Nie podano",
+                    MotherName = x.Mother != null ? x.Mother.Name : "Nie podano",
+                    Person = new DetailsPersonShared
+                    {
+                        Name = x.Name,
+                        BirthDate = x.BirthDate == null ? "Nie podano" : x.BirthDate.GetValueOrDefault().ToShortDateString(),
+                        DeathDate = x.DeathDate == null ? "Nie podano" : x.DeathDate.GetValueOrDefault().ToShortDateString(),
+                        Sex = x.Sex.ToString(),
+                    },
+                    Childs = x.Childs.Select(k=>new DetailsPersonShared
+                    {
+                        Name = k.Name,
+                        BirthDate = k.BirthDate == null ? "Nie podano" : k.BirthDate.GetValueOrDefault().ToShortDateString(),
+                        DeathDate = k.DeathDate == null ? "Nie podano" : k.DeathDate.GetValueOrDefault().ToShortDateString(),
+                        Sex = k.Sex.ToString(),
+                    }).ToList()
+                }).First());
+            }
+        }
+
+        public ActionResult Delete(string id)
+        {
+            using (var db = Db4oEmbedded.OpenFile(DbPath))
+            {
+                return View(db.Query<Person>(x => x.Name == id).Select(x => new DeleteViewModel
+                {
+                    Name = x.Name,
+                    Sex = x.Sex.ToString()
+                }).First());
+            }
+        }
+
+        [HttpPost,ActionName("Delete")]
+        public ActionResult DeletePost(string name)
+        {
+            using (var db = Db4oEmbedded.OpenFile(DbPath))
+            {
+                var person = db.Query<Person>(x => x.Name == name).First();
+                if (person.Father != null)
+                {
+                    person.Father.Childs.Remove(person.Father.Childs.Find(x => x.Name == name));
+                    db.Store(person.Father.Childs);
+                }
+                if (person.Mother != null)
+                {
+                    person.Mother.Childs.Remove(person.Mother.Childs.Find(x => x.Name == name));
+                    db.Store(person.Mother.Childs);
+                }
+                foreach (var child in person.Childs)
+                {
+                    if (person.Sex == Sex.Mężczyzna)
+                    {
+                        child.Father = null;
+                        db.Store(child);
+                    }
+                    else
+                    {
+                        child.Mother = null;
+                        db.Store(child);
+                    }
+                }
+                db.Delete(person);
+                return RedirectToAction("Index");
+            }
+        }
+
         public ActionResult Create()
         {
             InitializeDropdownLists();
@@ -77,8 +151,6 @@ namespace Db4o_lab2.Controllers
             InitializeDropdownLists();
             return View(model);
         }
-
-
 
         //Return valid Fathers/Mothers names by child birth date
         public JsonResult ReturnFathersMothersNames(DateTime date)

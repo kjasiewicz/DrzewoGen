@@ -1,0 +1,87 @@
+﻿@model Db4o_lab2.ViewModels.DetailsViewModel
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Szczegóły</h2>
+
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Person.Name)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Person.Name)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Person.Sex)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Person.Sex)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Person.BirthDate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Person.BirthDate)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Person.DeathDate)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Person.DeathDate)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.FatherName)
+        </dt>
+        <dd>
+            @(Model.FatherName == "Nie podano" ?
+                  Html.DisplayFor(modelItem => Model.FatherName) :
+                  (Html.ActionLink(Model.FatherName, "Details", new {id = Model.FatherName}, new {@class = "text-primary"})))
+@(Model.FatherName == "Nie podano" ?null:
+                   Html.ActionLink("X","DeleteParent",new{id=Model.Person.Name,parentId=Model.FatherName},new{@class="text-danger"}))
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.MotherName)
+        </dt>
+        <dd>
+            @(Model.MotherName == "Nie podano" ? Html.DisplayFor(modelItem => Model.MotherName) : Html.ActionLink(Model.MotherName, "Details", new { id = Model.MotherName }, new { @class = "text-primary" }))
+            @(Model.MotherName == "Nie podano" ? null :
+                   Html.ActionLink("X", "DeleteParent", new { id = Model.Person.Name, parentId = Model.MotherName },new{@class="text-danger"}))
+        </dd>
+
+    </dl>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Imię</th>
+                <th>Płeć</th>
+                <th>Data urodzenia</th>
+                <th>Data śmierci</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Childs)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Sex</td>
+                    <td>@item.BirthDate</td>
+                    <td>@item.DeathDate</td>
+                    <th>
+                        @Html.ActionLink("Usuń", "DeleteChild", new { id = Model.Person.Name, childId = item.Name }, new { @class = "btn btn-danger" })
+                        @Html.ActionLink("Szczegóły", "Details", new { id = item.Name }, new { @class = "btn btn-primary" })
+                    </th>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+<p>
+    @Html.ActionLink("Edytuj", "Edit", new { id = Model.Person.Name }) |
+    @Html.ActionLink("Wróć do listy", "Index")
+</p>

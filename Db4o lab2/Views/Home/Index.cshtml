@@ -9,7 +9,7 @@
 <p>
     @Html.ActionLink("Dodaj nową osobę", "Create")
 </p>
-<table class="table">
+<table class="table table-hover">
     <tr>
         <th>
             @Html.DisplayNameFor(model => model.Name)
@@ -41,10 +41,10 @@
             @Html.DisplayFor(modelItem => item.Wiek)
         </td>
         <td>
-            @Html.DisplayFor(modelItem => item.FatherName)
+            @(item.FatherName == "Nie podano" ? Html.DisplayFor(modelItem => item.FatherName) : Html.ActionLink(item.FatherName, "Details", new {id = item.FatherName}, new {@class = "text-primary"}))
         </td>
         <td>
-            @Html.DisplayFor(modelItem => item.MotherName)
+            @(item.MotherName == "Nie podano" ? Html.DisplayFor(modelItem => item.MotherName) : Html.ActionLink(item.MotherName, "Details", new { id = item.MotherName }, new { @class = "text-primary" }))
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.Sex)
@@ -53,9 +53,8 @@
             @Html.DisplayFor(modelItem => item.NumOfChilds)
         </td>
         <td>
-            @Html.ActionLink("Edytuj", "Edit", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Szczegóły", "Details", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Usuń", "Delete", new { /* id=item.PrimaryKey */ })
+            @Html.ActionLink("Szczegóły", "Details", new { id = item.Name },new{@class="btn btn-primary"})
+            @Html.ActionLink("Usuń", "Delete", new { id = item.Name }, new { @class = "btn btn-danger" })
         </td>
     </tr>
 }
