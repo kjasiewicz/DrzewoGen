@@ -72,7 +72,7 @@
                     <td>@item.BirthDate</td>
                     <td>@item.DeathDate</td>
                     <th>
-                        @Html.ActionLink("Usuń", "DeleteChild", new { id = Model.Person.Name, childId = item.Name }, new { @class = "btn btn-danger" })
+                        @Html.ActionLink("Usuń więź", "DeleteChild", new { id = Model.Person.Name, childId = item.Name }, new { @class = "btn btn-danger" })
                         @Html.ActionLink("Szczegóły", "Details", new { id = item.Name }, new { @class = "btn btn-primary" })
                     </th>
                 </tr>

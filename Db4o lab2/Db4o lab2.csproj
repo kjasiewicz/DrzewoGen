@@ -135,6 +135,7 @@
     <Content Include="Scripts\bootstrap-datepicker.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\editSite.js" />
     <Content Include="Scripts\go-1.4.24-debug.js" />
     <Content Include="Scripts\go-1.4.24.js" />
     <Content Include="Scripts\jquery-2.1.3.js" />
@@ -230,6 +231,7 @@
     <Compile Include="ViewModels\CreateViewModel.cs" />
     <Compile Include="ViewModels\DeleteViewModel.cs" />
     <Compile Include="ViewModels\DetailsViewModel.cs" />
+    <Compile Include="ViewModels\EditViewModel.cs" />
     <Compile Include="ViewModels\IndexViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -237,6 +239,7 @@
     <Content Include="packages.config" />
     <Content Include="Views\Home\Delete.cshtml" />
     <Content Include="Views\Home\Details.cshtml" />
+    <Content Include="Views\Home\Edit.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

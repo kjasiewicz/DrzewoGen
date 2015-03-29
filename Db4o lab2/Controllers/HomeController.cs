@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net.Configuration;
 using System.Web.Mvc;
 using Db4objects.Db4o;
 using Db4o_lab2.Models;
 using Db4o_lab2.ViewModels;
+using Microsoft.Ajax.Utilities;
 
 namespace Db4o_lab2.Controllers
 {
@@ -25,19 +27,163 @@ namespace Db4o_lab2.Controllers
                     Name = x.Name,
                     NumOfChilds = x.Childs.Count,
                     Sex = x.Sex.ToString(),
-                    Wiek = x.DeathDate == null ? (DateTime.Now.Year - (x.BirthDate==null?DateTime.Now.Year:x.BirthDate.Value.Year)).ToString(CultureInfo.InvariantCulture) : "Nie żyje :("
+                    Wiek = x.DeathDate == null ? 
+                    (DateTime.Now.Year - (x.BirthDate == null ? DateTime.Now.Year : x.BirthDate.Value.Year)).ToString(CultureInfo.InvariantCulture) 
+                    : (x.DeathDate.GetValueOrDefault().Year-x.BirthDate.GetValueOrDefault().Year).ToString(CultureInfo.InvariantCulture)
                 }).ToList());
             }
 
         }
 
+        public ActionResult Edit(string id)
+        {
+            using (var db = Db4oEmbedded.OpenFile(DbPath))
+            {
+                var person = db.Query<Person>(x => x.Name == id).First();
+                var model = new EditViewModel
+                {
+                    BirthDate =
+                        person.BirthDate == null ? "Nie podano" : person.BirthDate.GetValueOrDefault().ToShortDateString(),
+                    DeatDate =
+                        person.DeathDate == null ? "Nie podano" : person.DeathDate.GetValueOrDefault().ToShortDateString(),
+                    Name = person.Name,
+                    OldName = person.Name,
+                    Sex = person.Sex
+                };
+                ViewBag.SexList = new List<SelectListItem>
+                {
+                    new SelectListItem {Selected = person.Sex==Sex.Kobieta, Text = "Kobieta", Value = "Kobieta"},
+                    new SelectListItem {Selected = person.Sex==Sex.Mężczyzna, Text = "Mężczyzna", Value = "Mężczyzna"},
+                };
+                return View(model);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult Edit(EditViewModel model)
+        {
+            ViewBag.SexList = new List<SelectListItem>
+                {
+                    new SelectListItem {Selected = model.Sex==Sex.Kobieta, Text = "Kobieta", Value = "Kobieta"},
+                    new SelectListItem {Selected = model.Sex==Sex.Mężczyzna, Text = "Mężczyzna", Value = "Mężczyzna"},
+                };
+            if (ModelState.IsValid)
+            {
+                using (var db = Db4oEmbedded.OpenFile(DbPath))
+                {
+                    var isValidName = db.Query<Person>(x => x.Name == model.Name).Count == 0;
+                    var personToEdit = db.Query<Person>(x => x.Name == model.OldName).First();
+                    if (isValidName || personToEdit.Name==model.Name)
+                    {
+                        
+                        personToEdit.Name = model.Name;
+                        //Zmiana płci
+                        if (personToEdit.Sex != model.Sex)
+                        {
+                            if (personToEdit.Childs.Count != 0)
+                            {
+                                ModelState.AddModelError("Sex","Przed zmianą płci usuń wszytkie powiązania rodzicielskie!");
+                                return View(model);
+                            }
+                            personToEdit.Sex = model.Sex;
+                        }
+                        DateTime? deathTime;
+                        try
+                        {
+                            deathTime = Convert.ToDateTime(model.DeatDate);
+                        }
+                        catch (Exception)
+                        {
+                            deathTime = null;
+                        }
+                        var newBirthDate = Convert.ToDateTime(model.BirthDate);
+                        if ((newBirthDate - deathTime.GetValueOrDefault()).TotalDays > 0)
+                        {
+                            ModelState.AddModelError("BirthDate", "Data urodzenia musi być wcześniejsza niż data śmierci.");
+                            return View(model);
+                        }
+                        //Zmiana daty urodzenia
+                        if (Convert.ToDateTime(model.BirthDate)!=personToEdit.BirthDate.GetValueOrDefault() )
+                        {                         
+                            foreach (var child in personToEdit.Childs)
+                            {
+                                if (child.BirthDate != null && personToEdit.BirthDate!=null)
+                                {
+                                    if (!(child.BirthDate.Value.Year - newBirthDate.Year >= 12
+                                        && child.BirthDate.Value.Year - newBirthDate.Year <= 70)
+                                        && personToEdit.Sex == Sex.Mężczyzna)
+                                    {
+                                        ModelState.AddModelError("BirthDate","Nowa data urodzenia nie pasuje do któregoś z dzieci tej osoby.");
+                                        return View(model);
+                                    }
+                                    if (!(child.BirthDate.Value.Year - newBirthDate.Year >= 10
+                                          && child.BirthDate.Value.Year - newBirthDate.Year <= 60))
+                                    {
+                                        ModelState.AddModelError("BirthDate",
+                                            "Nowa data urodzenia nie pasuje do któregoś z dzieci tej osoby.");
+                                        return View(model);
+                                    }                                    
+                                }
+                            }
+                            if (personToEdit.Father != null)
+                            {
+                                if (!(newBirthDate.Year - personToEdit.Father.BirthDate.Value.Year >= 12 &&
+                                    newBirthDate.Year - personToEdit.Father.BirthDate.Value.Year <= 70))
+                                {
+                                    ModelState.AddModelError("BirthDate", "Nowa data urodzenia nie pasuje do któregoś z rodziców tej osoby.");
+                                    return View(model);
+                                }
+                            }
+                            if (personToEdit.Mother != null)
+                            {
+                                if (!(newBirthDate.Year - personToEdit.Mother.BirthDate.Value.Year >= 10 &&
+                                    newBirthDate.Year - personToEdit.Mother.BirthDate.Value.Year <= 60))
+                                {
+                                    ModelState.AddModelError("BirthDate", "Nowa data urodzenia nie pasuje do któregoś z rodziców tej osoby.");
+                                    return View(model);
+                                }
+                            }
+                            personToEdit.BirthDate = newBirthDate;
+                        }
+                        //zmiana daty śmierci
+                        
+                        if (deathTime!=null && deathTime.GetValueOrDefault() != personToEdit.DeathDate.GetValueOrDefault())
+                        {
+                            var newDeathDate = Convert.ToDateTime(model.DeatDate);
+                            foreach (var child in personToEdit.Childs)
+                            {
+                                if (child.BirthDate != null && personToEdit.DeathDate != null)
+                                {
+                                    if (!((child.BirthDate - newDeathDate).Value.TotalDays < 270) && personToEdit.Sex==Sex.Mężczyzna)
+                                    {
+                                        ModelState.AddModelError("BirthDate", "Nowa data urodzenia nie pasuje do któregoś z dzieci tej osoby.");
+                                        return View(model);
+                                    }
+                                    if (!((child.BirthDate - newDeathDate).Value.TotalDays <= 0))
+                                    {
+                                        ModelState.AddModelError("BirthDate",
+                                            "Nowa data urodzenia nie pasuje do któregoś z dzieci tej osoby.");
+                                        return View(model);
+                                    }
+                                    personToEdit.DeathDate = newDeathDate;
+                                }
+                            }
+                        }
+                        db.Store(personToEdit);
+                        return RedirectToAction("Details", new {id = personToEdit.Name});
+                    }
+                    ModelState.AddModelError("Name","Istnieje już taka osoba.");
+                }
+            }
+            return View(model);
+        }
 
 
         public ActionResult Details(string id)
         {
             using (var db = Db4oEmbedded.OpenFile(DbPath))
             {
-                return View(db.Query<Person>(x=>x.Name==id).Select(x=> new DetailsViewModel
+                return View(db.Query<Person>(x => x.Name == id).Select(x => new DetailsViewModel
                 {
                     FatherName = x.Father != null ? x.Father.Name : "Nie podano",
                     MotherName = x.Mother != null ? x.Mother.Name : "Nie podano",
@@ -48,7 +194,7 @@ namespace Db4o_lab2.Controllers
                         DeathDate = x.DeathDate == null ? "Nie podano" : x.DeathDate.GetValueOrDefault().ToShortDateString(),
                         Sex = x.Sex.ToString(),
                     },
-                    Childs = x.Childs.Select(k=>new DetailsPersonShared
+                    Childs = x.Childs.Select(k => new DetailsPersonShared
                     {
                         Name = k.Name,
                         BirthDate = k.BirthDate == null ? "Nie podano" : k.BirthDate.GetValueOrDefault().ToShortDateString(),
@@ -71,7 +217,7 @@ namespace Db4o_lab2.Controllers
             }
         }
 
-        [HttpPost,ActionName("Delete")]
+        [HttpPost, ActionName("Delete")]
         public ActionResult DeletePost(string name)
         {
             using (var db = Db4oEmbedded.OpenFile(DbPath))
@@ -118,6 +264,13 @@ namespace Db4o_lab2.Controllers
             {
                 using (var db = Db4oEmbedded.OpenFile(DbPath))
                 {
+                    if (model.DeatDate != null && model.BirthDate != null) 
+                        if((model.DeatDate - model.BirthDate).GetValueOrDefault().TotalDays < 0)
+                        {
+                            InitializeDropdownLists();
+                            ModelState.AddModelError("BirthDate", "Data śmierci nie może być wcześniejsza od daty urodzin!");
+                            return View(model);
+                        }
                     if (db.Query<Person>(x => x.Name == model.Name).Count == 0)
                     {
                         var person = new Person
@@ -135,7 +288,7 @@ namespace Db4o_lab2.Controllers
                             father.Childs.Add(person);
                             db.Store(father.Childs);
                         }
-                        if (model.MotherName != null && model.MotherName != "1")
+                        if (model.MotherName != null)
                         {
                             var mother = db.Query<Person>(x => x.Name == model.MotherName).First();
                             person.Mother = mother;
@@ -145,7 +298,7 @@ namespace Db4o_lab2.Controllers
                         db.Store(person);
                         return RedirectToAction("Index");
                     }
-                    ModelState.AddModelError("Name","Istnieje już taka osoba!");
+                    ModelState.AddModelError("Name", "Istnieje już taka osoba!");
                 }
             }
             InitializeDropdownLists();
@@ -162,8 +315,8 @@ namespace Db4o_lab2.Controllers
                     new {Text = "Wybierz ojca", Value = ""}
                 };
                 fatherNames.AddRange(db.Query<Person>().Where(x =>
-                    (x.BirthDate!=null && (x.BirthDate.Value.Year - date.Year) <= -12) &&
-                    (x.BirthDate!=null &&(x.BirthDate.Value.Year - date.Year) >= -70) &&
+                    (x.BirthDate != null && (x.BirthDate.Value.Year - date.Year) <= -12) &&
+                    (x.BirthDate != null && (x.BirthDate.Value.Year - date.Year) >= -70) &&
                     (x.DeathDate == null || (date - x.DeathDate).Value.TotalDays < 270) &&
                     x.Sex == Sex.Mężczyzna).Select(k => new
                     {
@@ -262,8 +415,8 @@ namespace Db4o_lab2.Controllers
             };
             ViewBag.SexList = new List<SelectListItem>
             {
-                new SelectListItem {Selected = false, Text = "Kobieta", Value = "1"},
-                new SelectListItem {Selected = false, Text = "Mężczyzna", Value = "2"},
+                new SelectListItem {Selected = false, Text = "Kobieta", Value = "Kobieta"},
+                new SelectListItem {Selected = false, Text = "Mężczyzna", Value = "Mężczyzna"},
             };
         }
     }
