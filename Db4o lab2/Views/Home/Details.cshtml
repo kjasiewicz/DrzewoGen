@@ -40,19 +40,20 @@
             @(Model.FatherName == "Nie podano" ?
                   Html.DisplayFor(modelItem => Model.FatherName) :
                   (Html.ActionLink(Model.FatherName, "Details", new {id = Model.FatherName}, new {@class = "text-primary"})))
-@(Model.FatherName == "Nie podano" ?null:
-                   Html.ActionLink("X","DeleteParent",new{id=Model.Person.Name,parentId=Model.FatherName},new{@class="text-danger"}))
+            @(Model.FatherName == "Nie podano" ?Html.ActionLink("Dodaj ojca","AddFather",new{id=Model.Person.Name}):
+                  Html.ActionLink("X","DeleteRelation",new{childId=Model.Person.Name,id=Model.FatherName},new{@class="text-danger"}))
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.MotherName)
         </dt>
         <dd>
             @(Model.MotherName == "Nie podano" ? Html.DisplayFor(modelItem => Model.MotherName) : Html.ActionLink(Model.MotherName, "Details", new { id = Model.MotherName }, new { @class = "text-primary" }))
-            @(Model.MotherName == "Nie podano" ? null :
-                   Html.ActionLink("X", "DeleteParent", new { id = Model.Person.Name, parentId = Model.MotherName },new{@class="text-danger"}))
+            @(Model.MotherName == "Nie podano" ? Html.ActionLink("Dodaj matkę", "AddMother", new { id = Model.Person.Name }) :
+                  Html.ActionLink("X", "DeleteRelation", new { childId = Model.Person.Name, id = Model.MotherName }, new { @class = "text-danger" }))
         </dd>
 
     </dl>
+    @Html.ActionLink("Dodaj potomka","AddChild",new{id=Model.Person.Name},new{@class="btn btn-default"})
     <table class="table table-hover">
         <thead>
             <tr>
@@ -72,7 +73,7 @@
                     <td>@item.BirthDate</td>
                     <td>@item.DeathDate</td>
                     <th>
-                        @Html.ActionLink("Usuń więź", "DeleteChild", new { id = Model.Person.Name, childId = item.Name }, new { @class = "btn btn-danger" })
+                        @Html.ActionLink("Usuń więź", "DeleteRelation", new { id = Model.Person.Name, childId = item.Name }, new { @class = "btn btn-danger" })
                         @Html.ActionLink("Szczegóły", "Details", new { id = item.Name }, new { @class = "btn btn-primary" })
                     </th>
                 </tr>

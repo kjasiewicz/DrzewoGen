@@ -1,0 +1,22 @@
+﻿@model Db4o_lab2.ViewModels.DeleteRelationViewModel
+
+@{
+    ViewBag.Title = "DeleteChild";
+}
+
+<h2>DeleteChild</h2>
+
+<h3>Czy na pewno chcesz usunąć tę więź?</h3>
+<div>
+    <hr />
+    Rodzic: @Model.Id <<>> Dziecko: @Model.ChildId
+
+    @using (Html.BeginForm()) {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Usuń więź" class="btn btn-default" /> |
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    }
+</div>

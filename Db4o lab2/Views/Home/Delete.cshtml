@@ -28,7 +28,7 @@
 
     @using (Html.BeginForm()) {
         @Html.AntiForgeryToken()
-
+        @Html.Hidden("id",Model.Name)
         <div class="form-actions no-color">
             <input type="submit" value="Delete" class="btn btn-danger" /> |
             @Html.ActionLink("Wróć do listy", "Index",null,new{@class="btn btn-primary"})

@@ -228,7 +228,9 @@
     </Compile>
     <Compile Include="Models\Core.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewModels\AddRelationViewModel.cs" />
     <Compile Include="ViewModels\CreateViewModel.cs" />
+    <Compile Include="ViewModels\DeleteRelationViewModel.cs" />
     <Compile Include="ViewModels\DeleteViewModel.cs" />
     <Compile Include="ViewModels\DetailsViewModel.cs" />
     <Compile Include="ViewModels\EditViewModel.cs" />
@@ -240,6 +242,10 @@
     <Content Include="Views\Home\Delete.cshtml" />
     <Content Include="Views\Home\Details.cshtml" />
     <Content Include="Views\Home\Edit.cshtml" />
+    <Content Include="Views\Home\DeleteRelation.cshtml" />
+    <Content Include="Views\Home\AddChild.cshtml" />
+    <Content Include="Views\Home\AddMother.cshtml" />
+    <Content Include="Views\Home\AddFather.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
