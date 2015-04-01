@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Configuration;
 using System.Web.Mvc;
+using System.Web.UI.WebControls;
 using Db4objects.Db4o;
 using Db4o_lab2.Models;
 using Db4o_lab2.ViewModels;
@@ -565,6 +566,55 @@ namespace Db4o_lab2.Controllers
                     fatherNames,
                     motherNames
                 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public ActionResult FamilyTree(string id)
+        {
+            return View();
+        }
+
+        private Person getChildrens(Person parent)
+
+        public JsonResult GetFamilyTreeData(string id)
+        {
+            var dictionaryPlz = new Dictionary<string, string>();
+            using (var db = Db4oEmbedded.OpenFile(DbPath))
+            {
+                var key = 
+                var list = new List<object>();
+                var root = db.Query<Person>(x => x.Name == id).First();
+                dictionaryPlz.Add();
+                var index = 0;
+                list.Add(
+                    new
+                    {
+                        key = index,
+                        name = root.Name,
+                        gender = root.Sex == Sex.Mężczyzna ? "M" : "F",
+                        birthYear = root.BirthDate.Value.Year,
+                        deathYear = root.DeathDate.Value.Year
+                    });
+                index++;
+                var plz = root;
+                while (plz.Childs.Count != 0)
+                {
+                    foreach (var child in plz.Childs)
+                    {
+                        list.Add(
+                        new
+                        {
+                            key = index,
+                            name = child.Name,
+                            gender = child.Sex == Sex.Mężczyzna ? "M" : "F",
+                            birthYear = child.BirthDate.Value.Year,
+                            deathYear = child.DeathDate.Value.Year
+                        });
+                        index++;
+                    }
+
+                
+                }
             }
         }
 

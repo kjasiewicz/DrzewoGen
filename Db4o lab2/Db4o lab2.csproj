@@ -246,6 +246,7 @@
     <Content Include="Views\Home\AddChild.cshtml" />
     <Content Include="Views\Home\AddMother.cshtml" />
     <Content Include="Views\Home\AddFather.cshtml" />
+    <Content Include="Views\Home\FamilyTree.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
