@@ -136,6 +136,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\editSite.js" />
+    <Content Include="Scripts\FamilyTree.js" />
     <Content Include="Scripts\go-1.4.24-debug.js" />
     <Content Include="Scripts\go-1.4.24.js" />
     <Content Include="Scripts\jquery-2.1.3.js" />

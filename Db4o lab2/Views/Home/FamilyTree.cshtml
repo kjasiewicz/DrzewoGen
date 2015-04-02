@@ -1,11 +1,17 @@
-﻿
+﻿@using System.Web.Optimization
+@model string
 @{
     ViewBag.Title = "FamilyTree";
 }
 
-<h2>Drzewo genealogiczne</h2>
+<h2>Drzewo genealogiczne osoby <span id="idforajax">@Model</span></h2>
+@Html.ActionLink("Powrót","Details","Home",new{id=Model},new{@class="btn btn-primary"})
 
 
-<div id="myDiagram"></div>
+
+<div id="myDiagram" style="background-color: white; border: solid 1px black; width: 100%; height: 500px"></div>
+
+@Scripts.Render("~/Scripts/go-1.4.24.js")
+@Scripts.Render("~/Scripts/FamilyTree.js")
 
 

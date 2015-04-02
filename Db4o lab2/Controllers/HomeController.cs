@@ -8,6 +8,7 @@ using System.Web.UI.WebControls;
 using Db4objects.Db4o;
 using Db4o_lab2.Models;
 using Db4o_lab2.ViewModels;
+using Sharpen.Util;
 
 namespace Db4o_lab2.Controllers
 {
@@ -571,50 +572,43 @@ namespace Db4o_lab2.Controllers
 
         public ActionResult FamilyTree(string id)
         {
-            return View();
+            return View((object)id);
         }
 
-        private Person getChildrens(Person parent)
+        private static void GetChildrens(string parent, IObjectContainer db, ref HashSet<object> lista)
+        {
+            var person = db.Query<Person>(x => x.Name == parent).First();            
+            foreach (var children in person.Childs)
+            {
+                lista.Add(new
+                {
+                    key = children.Name,
+                    parent = person.Name,
+                    name = children.Name,
+                    gender = children.Sex == Sex.Mężczyzna ? "M" : "F",
+                    birthYear = children.BirthDate.Value.ToShortDateString(),
+                    deathYear = children.DeathDate==null?"Nie podano":children.DeathDate.Value.ToShortDateString()
+                });
+                GetChildrens(children.Name,db,ref lista);
+            }
+        }
 
         public JsonResult GetFamilyTreeData(string id)
         {
-            var dictionaryPlz = new Dictionary<string, string>();
+            var lista = new HashSet<object>();
             using (var db = Db4oEmbedded.OpenFile(DbPath))
             {
-                var key = 
-                var list = new List<object>();
                 var root = db.Query<Person>(x => x.Name == id).First();
-                dictionaryPlz.Add();
-                var index = 0;
-                list.Add(
-                    new
-                    {
-                        key = index,
-                        name = root.Name,
-                        gender = root.Sex == Sex.Mężczyzna ? "M" : "F",
-                        birthYear = root.BirthDate.Value.Year,
-                        deathYear = root.DeathDate.Value.Year
-                    });
-                index++;
-                var plz = root;
-                while (plz.Childs.Count != 0)
+                lista.Add(new
                 {
-                    foreach (var child in plz.Childs)
-                    {
-                        list.Add(
-                        new
-                        {
-                            key = index,
-                            name = child.Name,
-                            gender = child.Sex == Sex.Mężczyzna ? "M" : "F",
-                            birthYear = child.BirthDate.Value.Year,
-                            deathYear = child.DeathDate.Value.Year
-                        });
-                        index++;
-                    }
-
-                
-                }
+                    key = root.Name,
+                    name = root.Name,
+                    gender = root.Sex == Sex.Mężczyzna ? "M" : "F",
+                    birthYear = root.BirthDate.Value.ToShortDateString(),
+                    deathYear = root.DeathDate==null?"Nie podano":root.DeathDate.Value.ToShortDateString()
+                });
+                GetChildrens(root.Name,db,ref lista);
+                return Json(lista, JsonRequestBehavior.AllowGet);
             }
         }
 
