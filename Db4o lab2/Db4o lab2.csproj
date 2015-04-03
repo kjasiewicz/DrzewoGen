@@ -136,6 +136,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\editSite.js" />
+    <Content Include="Scripts\CommonAncestors.js" />
     <Content Include="Scripts\FamilyTree.js" />
     <Content Include="Scripts\go-1.4.24-debug.js" />
     <Content Include="Scripts\go-1.4.24.js" />
@@ -248,6 +249,7 @@
     <Content Include="Views\Home\AddMother.cshtml" />
     <Content Include="Views\Home\AddFather.cshtml" />
     <Content Include="Views\Home\FamilyTree.cshtml" />
+    <Content Include="Views\Home\CommonAncestors.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

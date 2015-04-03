@@ -577,7 +577,7 @@ namespace Db4o_lab2.Controllers
 
         private static void GetChildrens(string parent, IObjectContainer db, ref HashSet<object> lista)
         {
-            var person = db.Query<Person>(x => x.Name == parent).First();            
+            var person = db.Query<Person>(x => x.Name == parent).First();
             foreach (var children in person.Childs)
             {
                 lista.Add(new
@@ -587,9 +587,9 @@ namespace Db4o_lab2.Controllers
                     name = children.Name,
                     gender = children.Sex == Sex.Mężczyzna ? "M" : "F",
                     birthYear = children.BirthDate.Value.ToShortDateString(),
-                    deathYear = children.DeathDate==null?"Nie podano":children.DeathDate.Value.ToShortDateString()
+                    deathYear = children.DeathDate == null ? "Nie podano" : children.DeathDate.Value.ToShortDateString()
                 });
-                GetChildrens(children.Name,db,ref lista);
+                GetChildrens(children.Name, db, ref lista);
             }
         }
 
@@ -605,10 +605,91 @@ namespace Db4o_lab2.Controllers
                     name = root.Name,
                     gender = root.Sex == Sex.Mężczyzna ? "M" : "F",
                     birthYear = root.BirthDate.Value.ToShortDateString(),
-                    deathYear = root.DeathDate==null?"Nie podano":root.DeathDate.Value.ToShortDateString()
+                    deathYear = root.DeathDate == null ? "Nie podano" : root.DeathDate.Value.ToShortDateString()
                 });
-                GetChildrens(root.Name,db,ref lista);
+                GetChildrens(root.Name, db, ref lista);
                 return Json(lista, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public ActionResult CommonAncestors()
+        {
+            using (var db = Db4oEmbedded.OpenFile(DbPath))
+            {
+                ViewBag.SelectList = db.Query<Person>(x => x.BirthDate != null).Select(k => new SelectListItem
+                {
+                    Text = k.Name,
+                    Value = k.Name
+                }).ToList();
+                ViewBag.RootList = db.Query<Person>(x => x.Father == null && x.Mother == null && x.BirthDate != null).Select(k => new SelectListItem
+                {
+                    Text = k.Name,
+                    Value = k.Name
+                }).ToList();
+                return View();
+            }
+        }
+
+        public JsonResult GetCommonAncestors(string root, string id1, string id2)
+        {
+            using (var db = Db4oEmbedded.OpenFile(DbPath))
+            {
+                var lista = new HashSet<LcaFilterClass>();
+                Lca(root, db, ref lista);
+                var plz = id1;
+                var plz2 = id2;
+                var plzLista = new List<LcaFilterClass>
+                {
+                    db.Query<Person>(x => x.Name == root).Select(k => new LcaFilterClass
+                    {
+                        name = k.Name,
+                        Ancestor = true,
+                        birthYear = k.BirthDate.GetValueOrDefault().ToShortDateString(),
+                        key = k.Name,
+                        gender = k.Sex == Sex.Mężczyzna ? "M" : "F",
+                        deathYear = k.DeathDate == null ? "Nie podano" : k.DeathDate.Value.ToShortDateString(),
+                        parent = ""
+                    }).First()
+                };
+                do
+                {
+                    var temp = lista.First(x => x.name == plz);
+                    plzLista.Add(temp);
+                    plz = temp.parent;
+                } while (plz != root);
+                do
+                {
+                    var temp = lista.First(x => x.name == plz2);
+                    if ((plzLista.Find(x => x.name == temp.name)) != null)
+                    {
+                        if (temp.name != id1 && temp.name != id2)
+                            plzLista.Find(x => x.name == temp.name).Ancestor = true;
+                    }
+                    else
+                    {
+                        plzLista.Add(temp);
+                    }
+                    plz2 = temp.parent;
+                } while (plz2 != root);
+                return Json(plzLista, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public static void Lca(string parent, IObjectContainer db, ref HashSet<LcaFilterClass> lista)
+        {
+            var person = db.Query<Person>(x => x.Name == parent).First();
+            foreach (var children in person.Childs)
+            {
+                lista.Add(new LcaFilterClass
+                {
+                    key = children.Name,
+                    name = children.Name,
+                    parent = person.Name,
+                    gender = children.Sex == Sex.Mężczyzna ? "M" : "F",
+                    birthYear = children.BirthDate.Value.ToShortDateString(),
+                    deathYear = children.DeathDate == null ? "Nie podano" : children.DeathDate.Value.ToShortDateString()
+                });
+                Lca(children.Name, db, ref lista);
             }
         }
 

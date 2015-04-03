@@ -32,31 +32,33 @@
         <th></th>
     </tr>
 
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Name)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Wiek)
-        </td>
-        <td>
-            @(item.FatherName == "Nie podano" ? Html.DisplayFor(modelItem => item.FatherName) : Html.ActionLink(item.FatherName, "Details", new {id = item.FatherName}, new {@class = "text-primary"}))
-        </td>
-        <td>
-            @(item.MotherName == "Nie podano" ? Html.DisplayFor(modelItem => item.MotherName) : Html.ActionLink(item.MotherName, "Details", new { id = item.MotherName }, new { @class = "text-primary" }))
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Sex)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.NumOfChilds)
-        </td>
-        <td>
-            @Html.ActionLink("Szczegóły", "Details", new { id = item.Name },new{@class="btn btn-primary"})
-            @Html.ActionLink("Usuń", "Delete", new { id = item.Name }, new { @class = "btn btn-danger" })
-        </td>
-    </tr>
-}
+    @foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Wiek)
+            </td>
+            <td>
+                @(item.FatherName == "Nie podano" ? Html.DisplayFor(modelItem => item.FatherName) : Html.ActionLink(item.FatherName, "Details", new {id = item.FatherName}, new {@class = "text-primary"}))
+            </td>
+            <td>
+                @(item.MotherName == "Nie podano" ? Html.DisplayFor(modelItem => item.MotherName) : Html.ActionLink(item.MotherName, "Details", new { id = item.MotherName }, new { @class = "text-primary" }))
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Sex)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.NumOfChilds)
+            </td>
+            <td>
+                @Html.ActionLink("Szczegóły", "Details", new { id = item.Name },new{@class="btn btn-primary"})
+                @Html.ActionLink("Usuń", "Delete", new { id = item.Name }, new { @class = "btn btn-danger" })
+            </td>
+        </tr>
+    }
 
 </table>
+
+@Html.ActionLink("Wspólni przodkowie", "CommonAncestors",null,new { @class = "btn btn-danger" })

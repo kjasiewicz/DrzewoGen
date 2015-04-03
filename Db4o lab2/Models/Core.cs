@@ -19,4 +19,15 @@ namespace Db4o_lab2.Models
         public Person Mother { get; set; }
         public List<Person> Childs { get; set; }
     }
+
+    public class LcaFilterClass
+    {
+        public string key { get; set; }
+        public string parent { get; set; }
+        public string name { get; set; }
+        public string gender { get; set; }
+        public string birthYear { get; set; }
+        public string deathYear { get; set; }
+        public bool Ancestor { get; set; }
+    }
 }
