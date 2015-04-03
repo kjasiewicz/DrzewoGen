@@ -111,14 +111,14 @@ namespace Db4o_lab2.Controllers
                                         && child.BirthDate.Value.Year - newBirthDate.Year <= 70)
                                         && personToEdit.Sex == Sex.Mężczyzna)
                                     {
-                                        ModelState.AddModelError("BirthDate", "Nowa data urodzenia nie pasuje do któregoś z dzieci tej osoby.");
+                                        ModelState.AddModelError("BirthDate", "Nowa data urodzenia nie pasuje do dziecka "+child.Name.ToUpper()+" tej osoby.");
                                         return View(model);
                                     }
                                     if (!(child.BirthDate.Value.Year - newBirthDate.Year >= 10
                                           && child.BirthDate.Value.Year - newBirthDate.Year <= 60))
                                     {
                                         ModelState.AddModelError("BirthDate",
-                                            "Nowa data urodzenia nie pasuje do któregoś z dzieci tej osoby.");
+                                            "Nowa data urodzenia nie pasuje do dziecka "+child.Name.ToUpper()+" tej osoby.");
                                         return View(model);
                                     }
                                 }
@@ -128,7 +128,7 @@ namespace Db4o_lab2.Controllers
                                 if (!(newBirthDate.Year - personToEdit.Father.BirthDate.Value.Year >= 12 &&
                                     newBirthDate.Year - personToEdit.Father.BirthDate.Value.Year <= 70))
                                 {
-                                    ModelState.AddModelError("BirthDate", "Nowa data urodzenia nie pasuje do któregoś z rodziców tej osoby.");
+                                    ModelState.AddModelError("BirthDate", "Nowa data urodzenia nie pasuje do ojca.");
                                     return View(model);
                                 }
                             }
@@ -137,7 +137,7 @@ namespace Db4o_lab2.Controllers
                                 if (!(newBirthDate.Year - personToEdit.Mother.BirthDate.Value.Year >= 10 &&
                                     newBirthDate.Year - personToEdit.Mother.BirthDate.Value.Year <= 60))
                                 {
-                                    ModelState.AddModelError("BirthDate", "Nowa data urodzenia nie pasuje do któregoś z rodziców tej osoby.");
+                                    ModelState.AddModelError("BirthDate", "Nowa data urodzenia nie pasuje do matki.");
                                     return View(model);
                                 }
                             }
@@ -154,13 +154,13 @@ namespace Db4o_lab2.Controllers
                                 {
                                     if (!((child.BirthDate - newDeathDate).Value.TotalDays < 270) && personToEdit.Sex == Sex.Mężczyzna)
                                     {
-                                        ModelState.AddModelError("BirthDate", "Nowa data śmierci nie pasuje do któregoś z dzieci tej osoby.");
+                                        ModelState.AddModelError("BirthDate", "Nowa data śmierci nie pasuje do dziecka "+child.Name.ToUpper()+" tej osoby.");
                                         return View(model);
                                     }
                                     if (!((child.BirthDate - newDeathDate).Value.TotalDays <= 0))
                                     {
                                         ModelState.AddModelError("BirthDate",
-                                            "Nowa data śmierci nie pasuje do któregoś z dzieci tej osoby.");
+                                            "Nowa data śmierci nie pasuje do dziecka "+child.Name.ToUpper()+" tej osoby.");
                                         return View(model);
                                     }
                                     personToEdit.DeathDate = newDeathDate;
