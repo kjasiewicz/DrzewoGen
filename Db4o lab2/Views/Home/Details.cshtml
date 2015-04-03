@@ -83,8 +83,14 @@
             }
         </tbody>
     </table>
-
 </div>
+<h3>Spadkobiercy zstępni:</h3>
+@foreach (var item in Model.Inheritors)
+{
+    @Html.ActionLink(item,"Details","Home",new{id=item})<br/>
+}
+<br/>
+<br />
 <p>
     @Html.ActionLink("Edytuj", "Edit", new { id = Model.Person.Name }) |
     @Html.ActionLink("Wróć do listy", "Index")

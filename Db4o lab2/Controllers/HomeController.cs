@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
-using System.Net.Configuration;
 using System.Web.Mvc;
-using System.Web.UI.WebControls;
 using Db4objects.Db4o;
 using Db4o_lab2.Models;
 using Db4o_lab2.ViewModels;
-using Sharpen.Util;
 
 namespace Db4o_lab2.Controllers
 {
@@ -152,21 +150,26 @@ namespace Db4o_lab2.Controllers
                             var newDeathDate = Convert.ToDateTime(model.DeatDate);
                             foreach (var child in personToEdit.Childs)
                             {
-                                if (child.BirthDate != null && personToEdit.DeathDate != null)
+                                if (child.BirthDate != null)
                                 {
                                     if (!((child.BirthDate - newDeathDate).Value.TotalDays < 270) && personToEdit.Sex == Sex.Mężczyzna)
                                     {
-                                        ModelState.AddModelError("BirthDate", "Nowa data urodzenia nie pasuje do któregoś z dzieci tej osoby.");
+                                        ModelState.AddModelError("BirthDate", "Nowa data śmierci nie pasuje do któregoś z dzieci tej osoby.");
                                         return View(model);
                                     }
                                     if (!((child.BirthDate - newDeathDate).Value.TotalDays <= 0))
                                     {
                                         ModelState.AddModelError("BirthDate",
-                                            "Nowa data urodzenia nie pasuje do któregoś z dzieci tej osoby.");
+                                            "Nowa data śmierci nie pasuje do któregoś z dzieci tej osoby.");
                                         return View(model);
                                     }
                                     personToEdit.DeathDate = newDeathDate;
                                 }
+                                
+                            }
+                            if (personToEdit.DeathDate == null && personToEdit.Childs.Count==0)
+                            {
+                                personToEdit.DeathDate = newDeathDate;
                             }
                         }
                         db.Store(personToEdit);
@@ -371,29 +374,48 @@ namespace Db4o_lab2.Controllers
             }
         }
 
+        private static void GetInheritors(Person root, ref List<string> inheritors)
+        {
+            foreach (var inheritor in root.Childs)
+            {
+                if (inheritor.DeathDate != null)
+                    GetInheritors(inheritor, ref inheritors);
+                else
+                    inheritors.Add(inheritor.Name);
+            }
+        }
+
         public ActionResult Details(string id)
         {
             using (var db = Db4oEmbedded.OpenFile(DbPath))
             {
-                var plz = db.Query<Person>(x => x.Name == id).Select(x => new DetailsViewModel
+                var inheritors = new List<string>();
+                var x = db.Query<Person>(k => k.Name == id).First();
+                GetInheritors(x,ref inheritors);
+                var plz = new DetailsViewModel
                 {
                     FatherName = x.Father != null ? x.Father.Name : "Nie podano",
                     MotherName = x.Mother != null ? x.Mother.Name : "Nie podano",
                     Person = new DetailsPersonShared
                     {
                         Name = x.Name,
-                        BirthDate = x.BirthDate == null ? "Nie podano" : x.BirthDate.GetValueOrDefault().ToShortDateString(),
-                        DeathDate = x.DeathDate == null ? "Nie podano" : x.DeathDate.GetValueOrDefault().ToShortDateString(),
+                        BirthDate =
+                            x.BirthDate == null ? "Nie podano" : x.BirthDate.GetValueOrDefault().ToShortDateString(),
+                        DeathDate =
+                            x.DeathDate == null ? "Nie podano" : x.DeathDate.GetValueOrDefault().ToShortDateString(),
                         Sex = x.Sex.ToString(),
                     },
                     Childs = x.Childs.Select(k => new DetailsPersonShared
                     {
                         Name = k.Name,
-                        BirthDate = k.BirthDate == null ? "Nie podano" : k.BirthDate.GetValueOrDefault().ToShortDateString(),
-                        DeathDate = k.DeathDate == null ? "Nie podano" : k.DeathDate.GetValueOrDefault().ToShortDateString(),
+                        BirthDate =
+                            k.BirthDate == null ? "Nie podano" : k.BirthDate.GetValueOrDefault().ToShortDateString(),
+                        DeathDate =
+                            k.DeathDate == null ? "Nie podano" : k.DeathDate.GetValueOrDefault().ToShortDateString(),
                         Sex = k.Sex.ToString(),
-                    }).ToList()
-                }).First();
+                    }).ToList(),
+                    Inheritors = inheritors
+                };
                 return View(plz);
             }
         }
@@ -575,21 +597,21 @@ namespace Db4o_lab2.Controllers
             return View((object)id);
         }
 
-        private static void GetChildrens(string parent, IObjectContainer db, ref HashSet<object> lista)
+        private static void GetChildrens(Person parent, ref HashSet<object> lista)
         {
-            var person = db.Query<Person>(x => x.Name == parent).First();
-            foreach (var children in person.Childs)
+            //var person = db.Query<Person>(x => x.Name == parent).First();
+            foreach (var children in parent.Childs)
             {
                 lista.Add(new
                 {
                     key = children.Name,
-                    parent = person.Name,
+                    parent = parent.Name,
                     name = children.Name,
                     gender = children.Sex == Sex.Mężczyzna ? "M" : "F",
                     birthYear = children.BirthDate.Value.ToShortDateString(),
                     deathYear = children.DeathDate == null ? "Nie podano" : children.DeathDate.Value.ToShortDateString()
                 });
-                GetChildrens(children.Name, db, ref lista);
+                GetChildrens(children, ref lista);
             }
         }
 
@@ -607,7 +629,7 @@ namespace Db4o_lab2.Controllers
                     birthYear = root.BirthDate.Value.ToShortDateString(),
                     deathYear = root.DeathDate == null ? "Nie podano" : root.DeathDate.Value.ToShortDateString()
                 });
-                GetChildrens(root.Name, db, ref lista);
+                GetChildrens(root, ref lista);
                 return Json(lista, JsonRequestBehavior.AllowGet);
             }
         }
@@ -634,8 +656,9 @@ namespace Db4o_lab2.Controllers
         {
             using (var db = Db4oEmbedded.OpenFile(DbPath))
             {
+                var roott = db.Query<Person>(x => x.Name == root).First();
                 var lista = new HashSet<LcaFilterClass>();
-                Lca(root, db, ref lista);
+                Lca(roott, ref lista);
                 var plz = id1;
                 var plz2 = id2;
                 var plzLista = new List<LcaFilterClass>
@@ -675,21 +698,20 @@ namespace Db4o_lab2.Controllers
             }
         }
 
-        public static void Lca(string parent, IObjectContainer db, ref HashSet<LcaFilterClass> lista)
+        public static void Lca(Person parent, ref HashSet<LcaFilterClass> lista)
         {
-            var person = db.Query<Person>(x => x.Name == parent).First();
-            foreach (var children in person.Childs)
+            foreach (var children in parent.Childs)
             {
                 lista.Add(new LcaFilterClass
                 {
                     key = children.Name,
                     name = children.Name,
-                    parent = person.Name,
+                    parent = parent.Name,
                     gender = children.Sex == Sex.Mężczyzna ? "M" : "F",
                     birthYear = children.BirthDate.Value.ToShortDateString(),
                     deathYear = children.DeathDate == null ? "Nie podano" : children.DeathDate.Value.ToShortDateString()
                 });
-                Lca(children.Name, db, ref lista);
+                Lca(children, ref lista);
             }
         }
 
