@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Web.Mvc;
@@ -634,26 +633,52 @@ namespace Db4o_lab2.Controllers
             }
         }
 
+        //ZROBIC AJAX TAK ABY OSOBA1 I OSOBA2 BYLY ZALEZNE OD ROOTA, TAK ABY NIE BYLO NULLI, BO CZASEM SĄ
         public ActionResult CommonAncestors()
         {
             using (var db = Db4oEmbedded.OpenFile(DbPath))
             {
-                ViewBag.SelectList = db.Query<Person>(x => x.BirthDate != null).Select(k => new SelectListItem
+                var list = new List<SelectListItem>
+                {
+                    new SelectListItem{Text="Wybierz korzeń",Value="1"}
+                };
+                list.AddRange(db.Query<Person>(x => x.Father == null && x.Mother == null && x.BirthDate != null).Select(k => new SelectListItem
                 {
                     Text = k.Name,
                     Value = k.Name
-                }).ToList();
-                ViewBag.RootList = db.Query<Person>(x => x.Father == null && x.Mother == null && x.BirthDate != null).Select(k => new SelectListItem
-                {
-                    Text = k.Name,
-                    Value = k.Name
-                }).ToList();
+                }).ToList());
+                ViewBag.RootList = list;
                 return View();
+            }
+        }
+
+        private static void GetNames(Person parent, ref HashSet<SelectListItem> lista)
+        {
+            foreach (var children in parent.Childs)
+            {
+                lista.Add(new SelectListItem
+                {
+                    Text = children.Name,
+                    Value = children.Name
+                });
+                GetNames(children, ref lista);
+            }
+        }
+
+        public JsonResult GetCommonAncestorsList(string root)
+        {
+            if (root == "1") return Json(false, JsonRequestBehavior.AllowGet);
+            using (var db = Db4oEmbedded.OpenFile(DbPath))
+            {
+                var list = new HashSet<SelectListItem>();
+                GetNames(db.Query<Person>(x => x.Name == root).First(),ref list);
+                return Json(list, JsonRequestBehavior.AllowGet);
             }
         }
 
         public JsonResult GetCommonAncestors(string root, string id1, string id2)
         {
+            if (root == "1") return Json(true, JsonRequestBehavior.AllowGet);
             using (var db = Db4oEmbedded.OpenFile(DbPath))
             {
                 var roott = db.Query<Person>(x => x.Name == root).First();
@@ -682,7 +707,7 @@ namespace Db4o_lab2.Controllers
                 } while (plz != root);
                 do
                 {
-                    var temp = lista.First(x => x.name == plz2);
+                    var temp = lista.FirstOrDefault(x => x.name == plz2);
                     if ((plzLista.Find(x => x.name == temp.name)) != null)
                     {
                         if (temp.name != id1 && temp.name != id2)
