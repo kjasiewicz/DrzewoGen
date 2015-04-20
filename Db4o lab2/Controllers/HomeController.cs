@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Web.Mvc;
 using Db4objects.Db4o;
@@ -23,14 +22,11 @@ namespace Db4o_lab2.Controllers
                     FatherName = x.Father == null ? "Nie podano" : x.Father.Name,
                     MotherName = x.Mother == null ? "Nie podano" : x.Mother.Name,
                     Name = x.Name,
-                    NumOfChilds = x.Childs.Count,
                     Sex = x.Sex.ToString(),
-                    Wiek = x.DeathDate == null ?
-                    (DateTime.Now.Year - (x.BirthDate == null ? DateTime.Now.Year : x.BirthDate.Value.Year)).ToString(CultureInfo.InvariantCulture)
-                    : (x.DeathDate.GetValueOrDefault().Year - x.BirthDate.GetValueOrDefault().Year).ToString(CultureInfo.InvariantCulture)
+                    BirthDate = x.BirthDate==null?"Nie podano" : x.BirthDate.GetValueOrDefault().ToShortDateString(),
+                    DeathDate = x.DeathDate == null ? "Nie podano" : x.DeathDate.GetValueOrDefault().ToShortDateString()
                 }).ToList());
             }
-
         }
 
         // GET: Edit person
@@ -243,150 +239,13 @@ namespace Db4o_lab2.Controllers
                 return RedirectToAction("Details", new { id = model.Id });
             }
         }
-
-        //GET: Add father
-        public ActionResult AddFather(string id)
-        {
-            using (var db = Db4oEmbedded.OpenFile(DbPath))
-            {
-                var list = new List<SelectListItem>
-                {
-                    new SelectListItem {Selected = true, Text = "Wybierz ojca", Value = "1"}
-                };
-                var child = db.Query<Person>(x => x.Name == id).First();
-
-                list.AddRange(db.Query<Person>(x => x.BirthDate != null && x.Sex == Sex.Mężczyzna
-                    && child.BirthDate.GetValueOrDefault().Year - x.BirthDate.GetValueOrDefault().Year >= 12
-                    && child.BirthDate.GetValueOrDefault().Year - x.BirthDate.GetValueOrDefault().Year <= 70
-                    && (child.DeathDate == null || (child.BirthDate.GetValueOrDefault() - x.DeathDate.GetValueOrDefault()).TotalDays <= 270))
-                    .Select(k => new SelectListItem
-                    {
-                        Text = k.Name,
-                        Value = k.Name
-                    }));
-
-                ViewBag.parent = list;
-                return View("AddFather", new AddRelationViewModel { ChildId = id });
-            }
-        }
-
-        //GET: Add mother
-        public ActionResult AddMother(string id)
-        {
-            using (var db = Db4oEmbedded.OpenFile(DbPath))
-            {
-                var list = new List<SelectListItem>
-                {
-                    new SelectListItem {Selected = true, Text = "Wybierz matkę", Value = "1"}
-                };
-                var child = db.Query<Person>(x => x.Name == id).First();
-
-                list.AddRange(db.Query<Person>(x => x.BirthDate != null && x.Sex == Sex.Kobieta
-                    && child.BirthDate.GetValueOrDefault().Year - x.BirthDate.GetValueOrDefault().Year >= 10
-                    && child.BirthDate.GetValueOrDefault().Year - x.BirthDate.GetValueOrDefault().Year <= 60
-                    && (x.DeathDate == null || (child.BirthDate.GetValueOrDefault() - x.DeathDate.GetValueOrDefault()).TotalDays <= 0))
-                    .Select(k => new SelectListItem
-                    {
-                        Text = k.Name,
-                        Value = k.Name
-                    }));
-
-                ViewBag.parent = list;
-                return View("AddMother", new AddRelationViewModel { ChildId = id });
-            }
-        }
-
-        //POST: Add mother
-        [HttpPost]
-        public ActionResult AddMother(AddRelationViewModel model)
-        {
-            if (!ModelState.IsValid) return View(model);
-            if (model.Id != "1")
-            {
-                using (var db = Db4oEmbedded.OpenFile(DbPath))
-                {
-                    var parent = db.Query<Person>(x => x.Name == model.Id).First();
-                    var child = db.Query<Person>(x => x.Name == model.ChildId).First();
-                    parent.Childs.Add(child);
-                    db.Store(parent.Childs);
-                    child.Mother = parent;
-                    db.Store(child);
-                    return RedirectToAction("Details", new { id = model.ChildId });
-                }
-            }
-            using (var db = Db4oEmbedded.OpenFile(DbPath))
-            {
-                var list = new List<SelectListItem>
-                {
-                    new SelectListItem {Selected = true, Text = "Wybierz matkę", Value = "1"}
-                };
-                var child = db.Query<Person>(x => x.Name == model.ChildId).First();
-
-                list.AddRange(db.Query<Person>(x => x.BirthDate != null && x.Sex == Sex.Kobieta
-                                                    && child.BirthDate.GetValueOrDefault().Year - x.BirthDate.GetValueOrDefault().Year >= 10
-                                                    && child.BirthDate.GetValueOrDefault().Year - x.BirthDate.GetValueOrDefault().Year <= 60
-                                                    && (x.DeathDate == null || (child.BirthDate.GetValueOrDefault() - x.DeathDate.GetValueOrDefault()).TotalDays <= 0))
-                    .Select(k => new SelectListItem
-                    {
-                        Text = k.Name,
-                        Value = k.Name
-                    }));
-
-                ViewBag.parent = list;
-                ModelState.AddModelError("id", "Wybierz dobrą matkę!");
-                return View(model);
-            }
-
-        }
-
-        //POST: Add father
-        [HttpPost]
-        public ActionResult AddFather(AddRelationViewModel model)
-        {
-            if (!ModelState.IsValid) return View(model);
-            if (model.Id != "1")
-            {
-                using (var db = Db4oEmbedded.OpenFile(DbPath))
-                {
-                    var parent = db.Query<Person>(x => x.Name == model.Id).First();
-                    var child = db.Query<Person>(x => x.Name == model.ChildId).First();
-                    parent.Childs.Add(child);
-                    db.Store(parent.Childs);
-                    child.Father = parent;
-                    db.Store(child);
-                    return RedirectToAction("Details", new { id = model.ChildId });
-                }
-            }
-            using (var db = Db4oEmbedded.OpenFile(DbPath))
-            {
-                var list = new List<SelectListItem>
-                {
-                    new SelectListItem {Selected = true, Text = "Wybierz ojca", Value = "1"}
-                };
-                var child = db.Query<Person>(x => x.Name == model.ChildId).First();
-
-                list.AddRange(db.Query<Person>(x => x.BirthDate != null && x.Sex == Sex.Mężczyzna
-                                                    && child.BirthDate.GetValueOrDefault().Year - x.BirthDate.GetValueOrDefault().Year >= 12
-                                                    && child.BirthDate.GetValueOrDefault().Year - x.BirthDate.GetValueOrDefault().Year <= 70
-                                                    && (x.DeathDate == null || (child.BirthDate.GetValueOrDefault() - x.DeathDate.GetValueOrDefault()).TotalDays <= 270))
-                    .Select(k => new SelectListItem
-                    {
-                        Text = k.Name,
-                        Value = k.Name
-                    }));
-
-                ViewBag.parent = list;
-                ModelState.AddModelError("id", "Wybierz dobrego ojca!");
-                return View(model);
-            }
-        }
-
+      
         //GET: Person details
         public ActionResult Details(string id)
         {
             using (var db = Db4oEmbedded.OpenFile(DbPath))
             {
-                var inheritors = new List<string>();
+                var inheritors = new List<Person>();
                 var x = db.Query<Person>(k => k.Name == id).First();
                 GetInheritors(x,ref inheritors);
                 var plz = new DetailsViewModel
@@ -411,7 +270,15 @@ namespace Db4o_lab2.Controllers
                             k.DeathDate == null ? "Nie podano" : k.DeathDate.GetValueOrDefault().ToShortDateString(),
                         Sex = k.Sex.ToString(),
                     }).ToList(),
-                    Inheritors = inheritors
+                    Inheritors = inheritors.Select(h=>new DetailsPersonShared
+                    {
+                        Name = h.Name,
+                        BirthDate =
+                            h.BirthDate == null ? "Nie podano" : x.BirthDate.GetValueOrDefault().ToShortDateString(),
+                        DeathDate =
+                            h.DeathDate == null ? "Nie podano" : x.DeathDate.GetValueOrDefault().ToShortDateString(),
+                        Sex = h.Sex.ToString(),
+                    }).ToList()
                 };
                 return View(plz);
             }
@@ -502,7 +369,11 @@ namespace Db4o_lab2.Controllers
         //GET: Create new person
         public ActionResult Create()
         {
-            InitializeDropdownLists();
+            ViewBag.SexList = new List<SelectListItem>
+            {
+                new SelectListItem {Selected = false, Text = "Kobieta", Value = "Kobieta"},
+                new SelectListItem {Selected = false, Text = "Mężczyzna", Value = "Mężczyzna"},
+            };
             return View();
         }
 
@@ -510,6 +381,11 @@ namespace Db4o_lab2.Controllers
         [HttpPost]
         public ActionResult Create(CreateViewModel model)
         {
+            ViewBag.SexList = new List<SelectListItem>
+            {
+                new SelectListItem {Selected = false, Text = "Kobieta", Value = "Kobieta"},
+                new SelectListItem {Selected = false, Text = "Mężczyzna", Value = "Mężczyzna"},
+            };
             if (ModelState.IsValid)
             {
                 using (var db = Db4oEmbedded.OpenFile(DbPath))
@@ -517,7 +393,7 @@ namespace Db4o_lab2.Controllers
                     if (model.DeatDate != null && model.BirthDate != null)
                         if ((model.DeatDate - model.BirthDate).GetValueOrDefault().TotalDays < 0)
                         {
-                            InitializeDropdownLists();
+                            
                             ModelState.AddModelError("BirthDate", "Data śmierci nie może być wcześniejsza od daty urodzin!");
                             return View(model);
                         }
@@ -551,7 +427,6 @@ namespace Db4o_lab2.Controllers
                     ModelState.AddModelError("Name", "Istnieje już taka osoba!");
                 }
             }
-            InitializeDropdownLists();
             return View(model);
         }
 
@@ -586,44 +461,61 @@ namespace Db4o_lab2.Controllers
         {
             using (var db = Db4oEmbedded.OpenFile(DbPath))
             {
-                var list = new List<SelectListItem>
+                ViewBag.PersonList = db.Query<Person>().Select(x => new SelectListItem
                 {
-                    new SelectListItem{Text="Wybierz korzeń",Value="1"}
-                };
-                list.AddRange(db.Query<Person>(x => x.Father == null && x.Mother == null && x.BirthDate != null).Select(k => new SelectListItem
-                {
-                    Text = k.Name,
-                    Value = k.Name
-                }).ToList());
-                ViewBag.RootList = list;
+                    Text = x.Name,
+                    Value = x.Name
+                }).ToList();
                 return View();
             }
         }
 
-        //AJAX GET: List of available names by given root
-        public JsonResult GetCommonAncestorsList(string root)
+        private string ReturnNames(string name,string name2, IObjectContainer db)
         {
-            if (root == "1") return Json(false, JsonRequestBehavior.AllowGet);
-            using (var db = Db4oEmbedded.OpenFile(DbPath))
+            var rootList =
+                db.Query<Person>(x => x.Father == null && x.Mother == null && x.BirthDate != null).ToList();
+            foreach (var t in rootList)
             {
-                var list = new HashSet<SelectListItem>();
-                GetNames(db.Query<Person>(x => x.Name == root).First(), ref list);
-                return Json(list, JsonRequestBehavior.AllowGet);
+                var firstTrue = false;
+                var secondTrue = false;
+                IsValidRoot(t, name,name2, ref firstTrue, ref secondTrue);
+                if (firstTrue && secondTrue)
+                {
+                    return t.Name;
+                }
+            }
+            return "false";
+        }
+
+        private void IsValidRoot(Person root, string name, string name2, ref bool firstTrue, ref bool secondTrue)
+        {
+            foreach (var children in root.Childs)
+            {
+                if (children.Name == name)
+                    firstTrue = true;
+                if (children.Name == name2)
+                    secondTrue = true;
+                if (!firstTrue || !secondTrue)
+                {
+                    IsValidRoot(children,name,name2,ref firstTrue,ref secondTrue);
+                }
             }
         }
 
         //AJAX GET: Common ancestors for given 2 persons and root - (usage of Lca func)
-        public JsonResult GetCommonAncestors(string root, string id1, string id2)
+        public JsonResult GetCommonAncestors(string id1, string id2)
         {
-            if (root == "1") return Json(true, JsonRequestBehavior.AllowGet);
             using (var db = Db4oEmbedded.OpenFile(DbPath))
             {
-                var roott = db.Query<Person>(x => x.Name == root).First();
-                var lista = new HashSet<LcaFilterClass>();
-                Lca(roott, ref lista);
-                var plz = id1;
-                var plz2 = id2;
-                var plzLista = new List<LcaFilterClass>
+                var root = ReturnNames(id1,id2,db);
+                if (root != "false")
+                {
+                    var roott = db.Query<Person>(x => x.Name == root).First();
+                    var lista = new HashSet<LcaFilterClass>();
+                    Lca(roott, ref lista);
+                    var plz = id1;
+                    var plz2 = id2;
+                    var plzLista = new List<LcaFilterClass>
                 {
                     db.Query<Person>(x => x.Name == root).Select(k => new LcaFilterClass
                     {
@@ -636,68 +528,31 @@ namespace Db4o_lab2.Controllers
                         parent = ""
                     }).First()
                 };
-                do
-                {
-                    var temp = lista.First(x => x.name == plz);
-                    plzLista.Add(temp);
-                    plz = temp.parent;
-                } while (plz != root);
-                do
-                {
-                    var temp = lista.FirstOrDefault(x => x.name == plz2);
-                    if ((plzLista.Find(x => x.name == temp.name)) != null)
+                    do
                     {
-                        if (temp.name != id1 && temp.name != id2)
-                            plzLista.Find(x => x.name == temp.name).Ancestor = true;
-                    }
-                    else
-                    {
+                        var temp = lista.First(x => x.name == plz);
                         plzLista.Add(temp);
-                    }
-                    plz2 = temp.parent;
-                } while (plz2 != root);
-                return Json(plzLista, JsonRequestBehavior.AllowGet);
-            }
-        }
-
-        //AJAX GET: Return valid Fathers/Mothers names by child birth date
-        public JsonResult ReturnFathersMothersNames(DateTime date)
-        {
-            using (var db = Db4oEmbedded.OpenFile(DbPath))
-            {
-                var fatherNames = new List<object>
-                {
-                    new {Text = "Wybierz ojca", Value = ""}
-                };
-                fatherNames.AddRange(db.Query<Person>().Where(x =>
-                    (x.BirthDate != null && (x.BirthDate.Value.Year - date.Year) <= -12) &&
-                    (x.BirthDate != null && (x.BirthDate.Value.Year - date.Year) >= -70) &&
-                    (x.DeathDate == null || (date - x.DeathDate).Value.TotalDays < 270) &&
-                    x.Sex == Sex.Mężczyzna).Select(k => new
+                        plz = temp.parent;
+                    } while (plz != root);
+                    do
                     {
-                        Text = k.Name,
-                        Value = k.Name
-                    }).ToList());
-
-                var motherNames = new List<object>
-                {
-                    new {Text = "Wybierz matkę", Value = ""}
-                };
-                motherNames.AddRange(db.Query<Person>().Where(x =>
-                    (x.BirthDate != null && (x.BirthDate.Value.Year - date.Year) <= -10) &&
-                    (x.BirthDate != null && (x.BirthDate.Value.Year - date.Year) >= -60) &&
-                    (x.DeathDate == null || (date - x.DeathDate).Value.TotalDays <= 0) &&
-                    x.Sex == Sex.Kobieta).Select(k => new
-                    {
-                        Text = k.Name,
-                        Value = k.Name
-                    }).ToList());
-                return Json(new
-                {
-                    fatherNames,
-                    motherNames
-                }, JsonRequestBehavior.AllowGet);
+                        var temp = lista.FirstOrDefault(x => x.name == plz2);
+                        if ((plzLista.Find(x => x.name == temp.name)) != null)
+                        {
+                            if (temp.name != id1 && temp.name != id2)
+                                plzLista.Find(x => x.name == temp.name).Ancestor = true;
+                        }
+                        else
+                        {
+                            plzLista.Add(temp);
+                        }
+                        plz2 = temp.parent;
+                    } while (plz2 != root);
+                    return Json(plzLista, JsonRequestBehavior.AllowGet);
+                }
+                
             }
+            return Json(false,JsonRequestBehavior.AllowGet);
         }
 
         //Fill database with initial data
@@ -759,6 +614,12 @@ namespace Db4o_lab2.Controllers
             return View();
         }
 
+        public ActionResult ClearDb()
+        {
+            System.IO.File.Delete(DbPath);
+            return RedirectToAction("Index");
+        }
+
         #region Helpers
 
         //Get descendants of given root (for family tree view)
@@ -776,20 +637,6 @@ namespace Db4o_lab2.Controllers
                     deathYear = children.DeathDate == null ? "Nie podano" : children.DeathDate.Value.ToShortDateString()
                 });
                 GetChildrens(children, ref lista);
-            }
-        }
-
-        //Get name of every descendant of given root (parent)
-        private static void GetNames(Person parent, ref HashSet<SelectListItem> lista)
-        {
-            foreach (var children in parent.Childs)
-            {
-                lista.Add(new SelectListItem
-                {
-                    Text = children.Name,
-                    Value = children.Name
-                });
-                GetNames(children, ref lista);
             }
         }
 
@@ -811,33 +658,15 @@ namespace Db4o_lab2.Controllers
             }
         }
 
-        //Initialize dropdown lissts
-        private void InitializeDropdownLists()
-        {
-            ViewBag.FatherList = new List<SelectListItem>
-            {
-                new SelectListItem {Selected = true, Text = "Imię ojca", Value = ""},
-            };
-            ViewBag.MotherList = new List<SelectListItem>
-            {
-                new SelectListItem {Selected = true, Text = "Imię matki", Value = ""},
-            };
-            ViewBag.SexList = new List<SelectListItem>
-            {
-                new SelectListItem {Selected = false, Text = "Kobieta", Value = "Kobieta"},
-                new SelectListItem {Selected = false, Text = "Mężczyzna", Value = "Mężczyzna"},
-            };
-        }
-
         //Get inheritors of given person and store them into list
-        private static void GetInheritors(Person root, ref List<string> inheritors)
+        private static void GetInheritors(Person root, ref List<Person> inheritors)
         {
             foreach (var inheritor in root.Childs)
             {
                 if (inheritor.DeathDate != null)
                     GetInheritors(inheritor, ref inheritors);
                 else
-                    inheritors.Add(inheritor.Name);
+                    inheritors.Add(inheritor);
             }
         }
 

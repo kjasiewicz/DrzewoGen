@@ -82,8 +82,7 @@
         event.preventDefault();
         var id1 = $("#id1").val();
         var id2 = $("#id2").val();
-        var root = $("#root").val();
-        $.getJSON("/Home/GetCommonAncestors/", { id1: id1, id2: id2, root: root }, function(data) {
+        $.getJSON("/Home/GetCommonAncestors/", { id1: id1, id2: id2 }, function(data) {
             // create the model for the family tree
             if(data!=true)
                 myDiagram.model = new go.TreeModel(data);
@@ -92,20 +91,20 @@
         });
     });
 
-    $("#root").change(function() {
-        if ($("#root").val() !== "1") {
-            var root = $("#root").val();
-            $.getJSON("/Home/GetCommonAncestorsList/", { root: root }, function (j) {
-                var options = '';
-                for (var i = 0; i < j.length; i++) {
-                    options += '<option value="' + j[i].Value + '">' + j[i].Text + '</option>';
-                }
-                $("#id1,#id2").html(options);
-                $("#plz").css("visibility", "visible");
-            }).fail(function (jqxhr, textStatus, error) {
-                console.log(jqxhr.responseText);
-            });
-        }
-    });
+    //$("#root").change(function() {
+    //    if ($("#root").val() !== "1") {
+    //        var root = $("#root").val();
+    //        $.getJSON("/Home/GetCommonAncestorsList/", { root: root }, function (j) {
+    //            var options = '';
+    //            for (var i = 0; i < j.length; i++) {
+    //                options += '<option value="' + j[i].Value + '">' + j[i].Text + '</option>';
+    //            }
+    //            $("#id1,#id2").html(options);
+    //            $("#plz").css("visibility", "visible");
+    //        }).fail(function (jqxhr, textStatus, error) {
+    //            console.log(jqxhr.responseText);
+    //        });
+    //    }
+    //});
 
 });

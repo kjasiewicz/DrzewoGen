@@ -3,22 +3,15 @@
     ViewBag.Title = "CommonAncestors";
 }
 
-<h2>CommonAncestors</h2>
-<div class="row">    
-    <div class="col-lg-3">
-        <h4>Korzeń</h4>
-        @Html.DropDownList("root", (List<SelectListItem>)ViewBag.RootList, new { id = "root", @class = "form-control" })
-    </div>
-
-</div>
-<div class="row" id="plz" style="visibility: hidden">
+<h2>Common Ancestors</h2>
+<div class="row" id="plz">
     <div class="col-lg-3">
         <h4>Osoba 1</h4>
-        @Html.DropDownList("id1", (List<SelectListItem>)ViewBag.RootList, new { id = "id1", @class = "form-control" })
+        @Html.DropDownList("id1", (List<SelectListItem>)ViewBag.PersonList, new { id = "id1", @class = "form-control" })
     </div>
     <div class="col-lg-3">
         <h4>Osoba 2</h4>
-        @Html.DropDownList("id2", (List<SelectListItem>)ViewBag.RootList, new { id = "id2", @class = "form-control" })
+        @Html.DropDownList("id2", (List<SelectListItem>)ViewBag.PersonList, new { id = "id2", @class = "form-control" })
     </div>
     <div class="col-lg-3">
         <h4>&nbsp;</h4>

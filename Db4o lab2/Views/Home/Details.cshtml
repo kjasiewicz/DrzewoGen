@@ -40,19 +40,14 @@
             @Html.DisplayNameFor(model => model.FatherName)
         </dt>
         <dd>
-            @(Model.FatherName == "Nie podano" ?
-                  Html.DisplayFor(modelItem => Model.FatherName) :
-                  (Html.ActionLink(Model.FatherName, "Details", new {id = Model.FatherName}, new {@class = "text-primary"})))
-            @(Model.FatherName == "Nie podano" ?Html.ActionLink("Dodaj ojca","AddFather",new{id=Model.Person.Name}):
-                  Html.ActionLink("X","DeleteRelation",new{childId=Model.Person.Name,id=Model.FatherName},new{@class="text-danger"}))
+            @Html.DisplayFor(modelItem => Model.FatherName)
+
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.MotherName)
         </dt>
         <dd>
-            @(Model.MotherName == "Nie podano" ? Html.DisplayFor(modelItem => Model.MotherName) : Html.ActionLink(Model.MotherName, "Details", new { id = Model.MotherName }, new { @class = "text-primary" }))
-            @(Model.MotherName == "Nie podano" ? Html.ActionLink("Dodaj matkę", "AddMother", new { id = Model.Person.Name }) :
-                  Html.ActionLink("X", "DeleteRelation", new { childId = Model.Person.Name, id = Model.MotherName }, new { @class = "text-danger" }))
+            @Html.DisplayFor(modelItem => Model.MotherName)
         </dd>
 
     </dl>
@@ -85,10 +80,32 @@
     </table>
 </div>
 <h3>Spadkobiercy zstępni:</h3>
-@foreach (var item in Model.Inheritors)
-{
-    @Html.ActionLink(item,"Details","Home",new{id=item})<br/>
-}
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Imię</th>
+            <th>Płeć</th>
+            <th>Data urodzenia</th>
+            <th>Data śmierci</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Inheritors)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Sex</td>
+                <td>@item.BirthDate</td>
+                <td>@item.DeathDate</td>
+                <th>
+                    @Html.ActionLink("Szczegóły", "Details", new { id = item.Name }, new { @class = "btn btn-primary" })
+                </th>
+            </tr>
+        }
+    </tbody>
+</table>
+
 <br/>
 <br />
 <p>

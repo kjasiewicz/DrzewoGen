@@ -132,7 +132,6 @@
     <Content Include="Content\dropdowns.less" />
     <None Include="Scripts\jquery-2.1.3.intellisense.js" />
     <Content Include="Icon.png" />
-    <Content Include="Scripts\bootstrap-datepicker.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\editSite.js" />
@@ -212,7 +211,6 @@
     <Content Include="Scripts\locales\bootstrap-datepicker.zh-TW.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\npm.js" />
-    <Content Include="Scripts\site.js" />
     <Content Include="Web.config" />
     <Content Include="Scripts\jquery-2.1.3.min.map" />
     <Content Include="Views\_ViewStart.cshtml" />
@@ -246,8 +244,6 @@
     <Content Include="Views\Home\Edit.cshtml" />
     <Content Include="Views\Home\DeleteRelation.cshtml" />
     <Content Include="Views\Home\AddChild.cshtml" />
-    <Content Include="Views\Home\AddMother.cshtml" />
-    <Content Include="Views\Home\AddFather.cshtml" />
     <Content Include="Views\Home\FamilyTree.cshtml" />
     <Content Include="Views\Home\CommonAncestors.cshtml" />
     <None Include="Web.Debug.config">
